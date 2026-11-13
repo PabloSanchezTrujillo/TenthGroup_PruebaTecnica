@@ -12,4 +12,11 @@
     <PackageReference Include="SonarAnalyzer.CSharp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- AutoMapper 14.x: DoS por recursión sin límite al mapear grafos muy anidados.
+         Se acepta el riesgo para no arrastrar AutoMapper 15+ (licencia comercial, deps .NET 10).
+         Mitigación: usar .MaxDepth(n) en mapeos de tipos autorreferenciados. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
+  </ItemGroup>
+
 </Project>
