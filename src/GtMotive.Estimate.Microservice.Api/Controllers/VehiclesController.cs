@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using GtMotive.Estimate.Microservice.Api.UseCases;
 using GtMotive.Estimate.Microservice.Api.UseCases.CreateVehicle;
 using GtMotive.Estimate.Microservice.Api.UseCases.GetAvailableVehicles;
+using GtMotive.Estimate.Microservice.Api.UseCases.RentVehicle;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,6 +44,27 @@ namespace GtMotive.Estimate.Microservice.Api.Controllers
         public async Task<IActionResult> GetAvailable()
         {
             var presenter = await mediator.Send(new GetAvailableVehiclesRequest());
+
+            return presenter.ActionResult;
+        }
+
+        /// <summary>
+        /// Rents a vehicle to a person. The rental starts now and the vehicle stops being available until it is returned.
+        /// </summary>
+        /// <param name="vehicleId">Identifier of the vehicle to rent.</param>
+        /// <param name="request">Person who rents the vehicle and agreed end date.</param>
+        /// <returns>The rental that has just started.</returns>
+        [HttpPost("{vehicleId:guid}/rentals")]
+        [ProducesResponseType(typeof(RentalResponse), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Rent([FromRoute] Guid vehicleId, [FromBody][Required] RentVehicleRequest request)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+
+            request.VehicleId = vehicleId;
+
+            var presenter = await mediator.Send(request);
 
             return presenter.ActionResult;
         }

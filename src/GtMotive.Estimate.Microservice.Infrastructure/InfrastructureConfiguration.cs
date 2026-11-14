@@ -32,6 +32,7 @@ namespace GtMotive.Estimate.Microservice.Infrastructure
 
             services.AddSingleton<MongoService>();
             services.AddScoped<IVehicleRepository, VehicleRepository>();
+            services.AddScoped<IRentalRepository, RentalRepository>();
 
             return new InfrastructureBuilder(services);
         }

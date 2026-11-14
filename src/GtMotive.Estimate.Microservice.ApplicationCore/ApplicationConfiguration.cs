@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using GtMotive.Estimate.Microservice.ApplicationCore.UseCases;
 using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.CreateVehicle;
 using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.GetAvailableVehicles;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.RentVehicle;
+using GtMotive.Estimate.Microservice.Domain.Rentals;
 using GtMotive.Estimate.Microservice.Domain.Vehicles;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -27,9 +29,11 @@ namespace GtMotive.Estimate.Microservice.ApplicationCore
             services.TryAddSingleton(TimeProvider.System);
 
             services.AddScoped<VehicleService>();
+            services.AddScoped<RentalService>();
 
             services.AddScoped<IUseCase<CreateVehicleInput>, CreateVehicleUseCase>();
             services.AddScoped<IUseCase<GetAvailableVehiclesInput>, GetAvailableVehiclesUseCase>();
+            services.AddScoped<IUseCase<RentVehicleInput>, RentVehicleUseCase>();
 
             return services;
         }

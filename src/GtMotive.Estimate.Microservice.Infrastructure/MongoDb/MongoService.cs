@@ -3,12 +3,16 @@ using GtMotive.Estimate.Microservice.Domain.Rentals;
 using GtMotive.Estimate.Microservice.Domain.Vehicles;
 using GtMotive.Estimate.Microservice.Infrastructure.MongoDb.Settings;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace GtMotive.Estimate.Microservice.Infrastructure.MongoDb
 {
     public class MongoService
     {
+        public const string ActiveRentalByVehicleIndexName = "ux_rentals_activeVehicle";
+        public const string ActiveRentalByCustomerIndexName = "ux_rentals_activeCustomer";
+
         private const string VehiclesCollectionName = "vehicles";
         private const string RentalsCollectionName = "rentals";
 
@@ -52,6 +56,20 @@ namespace GtMotive.Estimate.Microservice.Infrastructure.MongoDb
                 new CreateIndexOptions { Unique = true, Name = "ux_vehicles_licensePlate" });
 
             await Vehicles.Indexes.CreateOneAsync(uniqueLicensePlate);
+
+            // Second guard of the rental rules: among the rentals that have not been returned yet,
+            // a vehicle and a customer can appear only once.
+            var activeRental = Builders<Rental>.Filter.Type(r => r.ReturnDate, BsonType.Null);
+
+            var oneActiveRentalPerVehicle = new CreateIndexModel<Rental>(
+                Builders<Rental>.IndexKeys.Ascending(r => r.VehicleId),
+                new CreateIndexOptions<Rental> { Unique = true, Name = ActiveRentalByVehicleIndexName, PartialFilterExpression = activeRental });
+
+            var oneActiveRentalPerCustomer = new CreateIndexModel<Rental>(
+                Builders<Rental>.IndexKeys.Ascending(r => r.CustomerId),
+                new CreateIndexOptions<Rental> { Unique = true, Name = ActiveRentalByCustomerIndexName, PartialFilterExpression = activeRental });
+
+            await Rentals.Indexes.CreateManyAsync([oneActiveRentalPerVehicle, oneActiveRentalPerCustomer]);
         }
     }
 }
