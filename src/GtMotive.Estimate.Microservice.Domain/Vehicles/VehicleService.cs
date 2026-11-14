@@ -14,10 +14,10 @@ namespace GtMotive.Estimate.Microservice.Domain.Vehicles
         /// <summary>
         /// Adds a new vehicle to the fleet.
         /// </summary>
-        /// <param name="licensePlate">License plate. It must be unique in the fleet.</param>
-        /// <param name="brand">Brand.</param>
-        /// <param name="model">Model.</param>
-        /// <param name="manufactureDate">Manufacture date.</param>
+        /// <param name="licensePlate">Car's license plate. It must be unique in the fleet.</param>
+        /// <param name="brand">Car's brand.</param>
+        /// <param name="model">Car's model.</param>
+        /// <param name="manufactureDate">Car's manufacture date.</param>
         /// <param name="today">Current date, used to check the age of the vehicle.</param>
         /// <returns>The new <see cref="Vehicle"/>.</returns>
         /// <exception cref="LicensePlateAlreadyExistsException">There is already a vehicle with that license plate.</exception>

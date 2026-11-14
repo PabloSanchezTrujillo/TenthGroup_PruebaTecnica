@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GtMotive.Estimate.Microservice.Domain.Interfaces;
+using GtMotive.Estimate.Microservice.Domain.Rentals;
 using GtMotive.Estimate.Microservice.Domain.Vehicles;
 using MongoDB.Driver;
 
@@ -47,10 +48,24 @@ namespace GtMotive.Estimate.Microservice.Infrastructure.MongoDb.Repositories
             return await _vehicles.Find(filter).AnyAsync();
         }
 
-        public Task<IReadOnlyCollection<Vehicle>> GetAvailable(DateOnly oldestManufactureDate)
+        public async Task<IReadOnlyCollection<Vehicle>> GetAvailable(DateOnly oldestManufactureDate)
         {
-            // Pending: it needs the rentals collection, which arrives with the Rent Vehicle use case.
-            throw new NotSupportedException("Listing the available vehicles is not implemented yet.");
+            // A vehicle is rented while it has a rental without return date.
+            var activeRentals = Builders<Rental>.Filter.Eq(r => r.ReturnDate, null);
+
+            var rentedVehicleIds = await mongoService.Rentals
+                .Find(activeRentals)
+                .Project(r => r.VehicleId)
+                .ToListAsync();
+
+            var available = Builders<Vehicle>.Filter.And(
+                Builders<Vehicle>.Filter.Gte(v => v.ManufactureDate, oldestManufactureDate),
+                Builders<Vehicle>.Filter.Nin(v => v.Id, rentedVehicleIds));
+
+            return await _vehicles
+                .Find(available)
+                .SortBy(v => v.LicensePlate)
+                .ToListAsync();
         }
     }
 }

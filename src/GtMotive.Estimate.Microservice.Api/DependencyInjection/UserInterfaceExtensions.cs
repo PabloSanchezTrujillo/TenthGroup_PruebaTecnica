@@ -1,5 +1,7 @@
 ﻿using GtMotive.Estimate.Microservice.Api.UseCases.CreateVehicle;
+using GtMotive.Estimate.Microservice.Api.UseCases.GetAvailableVehicles;
 using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.CreateVehicle;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.GetAvailableVehicles;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GtMotive.Estimate.Microservice.Api.DependencyInjection
@@ -8,9 +10,11 @@ namespace GtMotive.Estimate.Microservice.Api.DependencyInjection
     {
         public static IServiceCollection AddPresenters(this IServiceCollection services)
         {
-            // The same presenter instance is the output port of the use case and the result read by the handler.
             services.AddScoped<CreateVehiclePresenter>();
             services.AddScoped<ICreateVehicleOutputPort>(provider => provider.GetRequiredService<CreateVehiclePresenter>());
+
+            services.AddScoped<GetAvailableVehiclesPresenter>();
+            services.AddScoped<IGetAvailableVehiclesOutputPort>(provider => provider.GetRequiredService<GetAvailableVehiclesPresenter>());
 
             return services;
         }

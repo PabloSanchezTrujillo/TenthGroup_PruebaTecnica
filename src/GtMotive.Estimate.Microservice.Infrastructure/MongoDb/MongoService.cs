@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using GtMotive.Estimate.Microservice.Domain.Rentals;
 using GtMotive.Estimate.Microservice.Domain.Vehicles;
 using GtMotive.Estimate.Microservice.Infrastructure.MongoDb.Settings;
 using Microsoft.Extensions.Options;
@@ -9,6 +10,7 @@ namespace GtMotive.Estimate.Microservice.Infrastructure.MongoDb
     public class MongoService
     {
         private const string VehiclesCollectionName = "vehicles";
+        private const string RentalsCollectionName = "rentals";
 
         private Task _indexes;
 
@@ -25,6 +27,8 @@ namespace GtMotive.Estimate.Microservice.Infrastructure.MongoDb
         public IMongoDatabase Database { get; }
 
         public IMongoCollection<Vehicle> Vehicles => Database.GetCollection<Vehicle>(VehiclesCollectionName);
+
+        public IMongoCollection<Rental> Rentals => Database.GetCollection<Rental>(RentalsCollectionName);
 
         /// <summary>
         /// Creates the indexes the first time it is called. If it fails (e.g. the database is down) the next call retries.

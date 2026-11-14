@@ -1,4 +1,5 @@
-﻿using GtMotive.Estimate.Microservice.Domain.Vehicles;
+﻿using GtMotive.Estimate.Microservice.Domain.Rentals;
+using GtMotive.Estimate.Microservice.Domain.Vehicles;
 using GtMotive.Estimate.Microservice.Infrastructure.MongoDb.Serializers;
 using MongoDB.Bson.Serialization;
 
@@ -24,6 +25,20 @@ namespace GtMotive.Estimate.Microservice.Infrastructure.MongoDb
                 map.MapProperty(v => v.Brand);
                 map.MapProperty(v => v.Model);
                 map.MapProperty(v => v.ManufactureDate);
+            });
+
+            BsonSerializer.TryRegisterSerializer(new RentalIdSerializer());
+            BsonSerializer.TryRegisterSerializer(new CustomerIdSerializer());
+
+            // IsActive and DaysOverdue are calculated from the dates, so they are not stored.
+            BsonClassMap.TryRegisterClassMap<Rental>(map =>
+            {
+                map.MapIdProperty(r => r.Id);
+                map.MapProperty(r => r.VehicleId);
+                map.MapProperty(r => r.CustomerId);
+                map.MapProperty(r => r.StartDate);
+                map.MapProperty(r => r.EndDate);
+                map.MapProperty(r => r.ReturnDate);
             });
         }
     }
