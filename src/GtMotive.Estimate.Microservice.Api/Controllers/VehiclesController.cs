@@ -6,6 +6,7 @@ using GtMotive.Estimate.Microservice.Api.UseCases;
 using GtMotive.Estimate.Microservice.Api.UseCases.CreateVehicle;
 using GtMotive.Estimate.Microservice.Api.UseCases.GetAvailableVehicles;
 using GtMotive.Estimate.Microservice.Api.UseCases.RentVehicle;
+using GtMotive.Estimate.Microservice.Api.UseCases.ReturnVehicle;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -65,6 +66,23 @@ namespace GtMotive.Estimate.Microservice.Api.Controllers
             request.VehicleId = vehicleId;
 
             var presenter = await mediator.Send(request);
+
+            return presenter.ActionResult;
+        }
+
+        /// <summary>
+        /// Returns a rented vehicle. The return happens now and the vehicle becomes available again.
+        /// If it is returned after the agreed end date, the response includes the days overdue and a surcharge notice.
+        /// </summary>
+        /// <param name="vehicleId">Identifier of the vehicle that is being returned.</param>
+        /// <returns>The completed rental.</returns>
+        [HttpPost("{vehicleId:guid}/return")]
+        [ProducesResponseType(typeof(ReturnVehicleResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Return([FromRoute] Guid vehicleId)
+        {
+            var presenter = await mediator.Send(new ReturnVehicleRequest(vehicleId));
 
             return presenter.ActionResult;
         }
