@@ -1,3 +1,117 @@
+# Car Rental: microservicio de renting de vehículos
+
+API REST para gestionar la flota de una empresa de renting. Permite:
+
+- Crear vehículos en la flota.
+- Listar los vehículos disponibles.
+- Alquilar un vehículo.
+- Devolver un vehículo.
+
+Está construido sobre la template de arquitectura hexagonal que se documenta [más abajo](#sample-implementation-of-hexagonal-architecture-in-a-microservice), con .NET 9 y MongoDB.
+
+## Ejecución en local
+
+El único requisito es tener [Docker](https://www.docker.com/products/docker-desktop/). Desde la raíz del repositorio:
+
+```bash
+docker compose up --build
+```
+
+Esto compila la API dentro de un contenedor y levanta otro con MongoDB. Cuando termine, la API queda disponible en:
+
+- Swagger: http://localhost:8080/swagger
+- API: http://localhost:8080/api/vehicles
+
+Para detenerlo, `Ctrl+C` y después:
+
+```bash
+docker compose down
+```
+
+Los datos se conservan entre ejecuciones en un volumen de Docker. Para borrarlos también, `docker compose down -v`.
+
+### Ejecución desde el IDE
+
+Para depurar, se puede levantar solo la base de datos con Docker y arrancar la API desde el IDE o con el SDK de .NET 9:
+
+```bash
+docker compose up -d mongodb
+dotnet run --project src/GtMotive.Estimate.Microservice.Host
+```
+
+En este caso Swagger queda en http://localhost:5000/swagger.
+
+## Endpoints
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/vehicles` | Crea un vehículo en la flota |
+| `GET` | `/api/vehicles/available` | Lista los vehículos que se pueden alquilar |
+| `POST` | `/api/vehicles/{vehicleId}/rentals` | Alquila un vehículo |
+| `POST` | `/api/vehicles/{vehicleId}/return` | Devuelve un vehículo alquilado |
+
+Ejemplo de recorrido completo con `curl`:
+
+```bash
+# 1. Crear un vehículo (la respuesta incluye su vehicleId)
+curl -X POST http://localhost:8080/api/vehicles \
+  -H "Content-Type: application/json" \
+  -d '{ "licensePlate": "1234 ABC", "brand": "Toyota", "model": "Corolla", "manufactureDate": "2024-05-20" }'
+
+# 2. Listar los disponibles
+curl http://localhost:8080/api/vehicles/available
+
+# 3. Alquilarlo (sustituir {vehicleId})
+curl -X POST http://localhost:8080/api/vehicles/{vehicleId}/rentals \
+  -H "Content-Type: application/json" \
+  -d '{ "customerId": "12345678Z", "endDate": "2030-01-10T10:00:00Z" }'
+
+# 4. Devolverlo
+curl -X POST http://localhost:8080/api/vehicles/{vehicleId}/return
+```
+
+Los errores se devuelven como `ProblemDetails`: `400` si los datos no son válidos o se incumple una regla de negocio, y `404` si el vehículo no existe o no está alquilado.
+
+## Reglas de negocio
+
+- **Antigüedad máxima de 5 años.** No se puede crear un vehículo cuya fecha de fabricación sea de hace más de 5 años. Un vehículo que supera esa antigüedad estando ya en la flota deja de listarse como disponible y no se puede alquilar.
+- **Un vehículo por persona.** Una persona (`customerId`) no puede tener más de un vehículo alquilado al mismo tiempo.
+- **Matrícula única.** No puede haber dos vehículos con la misma matrícula. Se compara sin distinguir mayúsculas ni espacios a los lados.
+- **Disponibilidad.** Un vehículo alquilado no está disponible hasta que se devuelve, aunque haya pasado la fecha final pactada.
+- **Recargo por retraso.** El alquiler empieza en el momento de la petición y lleva una fecha final pactada. Si el vehículo se devuelve después, la devolución se acepta y la respuesta indica los días de retraso (`daysOverdue`) y un aviso de recargo (`surchargeNotice`). Cualquier día empezado cuenta como día completo: una hora de retraso es un día.
+
+## Tests
+
+Hay un proyecto por cada tipo de prueba. Se ejecutan con el SDK de .NET 9, desde la raíz del repositorio.
+
+| Tipo | Proyecto | Qué prueba | Necesita MongoDB |
+|---|---|---|---|
+| Unitario | `test/unit` | Casos de uso, dominio y presenters, con sus dependencias simuladas | No |
+| Infraestructura | `test/infrastructure` | `POST /api/vehicles` solo a nivel de host: recepción de la llamada y validación del modelo. El caso de uso se sustituye por un doble | No |
+| Funcional | `test/functional` | Integración sin el host: handlers, casos de uso, dominio y repositorios reales contra MongoDB | Sí |
+
+```bash
+dotnet test test/unit/GtMotive.Estimate.Microservice.UnitTests
+dotnet test test/infrastructure/GtMotive.Estimate.Microservice.InfrastructureTests
+```
+
+Los funcionales necesitan la base de datos en marcha. Usan una base de datos propia (`carrental_functional_tests`) que eliminan al terminar, así que no tocan los datos de la aplicación:
+
+```bash
+docker compose up -d mongodb
+dotnet test test/functional/GtMotive.Estimate.Microservice.FunctionalTests
+```
+
+## Decisiones de diseño
+
+- **La disponibilidad no se guarda en el vehículo.** Un vehículo está disponible cuando no tiene ningún alquiler sin devolver. Así alquilar y devolver escriben un único documento y no hacen falta transacciones de MongoDB.
+- **Las reglas viven en el dominio.** Las que afectan a un solo objeto están en las entidades (`Vehicle`, `Rental`) y las que necesitan consultar otros datos, en servicios de dominio (`VehicleService`, `RentalService`). Los casos de uso solo orquestan.
+- **Índices únicos como segunda barrera.** Además de la comprobación del dominio, MongoDB tiene índices únicos para la matrícula y para el alquiler activo por vehículo y por persona. Cubren el caso de dos peticiones simultáneas.
+- **Sin autenticación.** La template incluye autenticación contra un servidor de identidad externo. Los endpoints no la exigen para que el servicio se pueda ejecutar en local sin dependencias externas.
+- **Entorno `Development`.** El servicio se ejecuta en este entorno, también en Docker, porque fuera de él la template requiere Azure Key Vault y Application Insights.
+
+---
+
 # Sample Implementation of Hexagonal Architecture in a Microservice
 ## Index
 ### [Introduction](#introduction)

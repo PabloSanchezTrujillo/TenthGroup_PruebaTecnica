@@ -1,6 +1,14 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.CreateVehicle;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.GetAvailableVehicles;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.RentVehicle;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.ReturnVehicle;
+using GtMotive.Estimate.Microservice.Domain.Rentals;
+using GtMotive.Estimate.Microservice.Domain.Vehicles;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 [assembly: CLSCompliant(false)]
 
@@ -19,6 +27,16 @@ namespace GtMotive.Estimate.Microservice.ApplicationCore
         /// <returns>The modified instance.</returns>
         public static IServiceCollection AddUseCases(this IServiceCollection services)
         {
+            services.TryAddSingleton(TimeProvider.System);
+
+            services.AddScoped<VehicleService>();
+            services.AddScoped<RentalService>();
+
+            services.AddScoped<IUseCase<CreateVehicleInput>, CreateVehicleUseCase>();
+            services.AddScoped<IUseCase<GetAvailableVehiclesInput>, GetAvailableVehiclesUseCase>();
+            services.AddScoped<IUseCase<RentVehicleInput>, RentVehicleUseCase>();
+            services.AddScoped<IUseCase<ReturnVehicleInput>, ReturnVehicleUseCase>();
+
             return services;
         }
     }

@@ -9,15 +9,13 @@
 
     <ItemGroup>
         <PackageReference Include="Acheve.TestHost" />
+        <!-- Explicit so it matches the .NET 9 runtime: the 8.x version that Acheve.TestHost brings cannot write JSON responses on .NET 9. -->
+        <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\src\GtMotive.Estimate.Microservice.Api\GtMotive.Estimate.Microservice.Api.csproj" />
         <ProjectReference Include="..\..\..\src\GtMotive.Estimate.Microservice.Infrastructure\GtMotive.Estimate.Microservice.Infrastructure.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Specs\" />
     </ItemGroup>
 
 </Project>
