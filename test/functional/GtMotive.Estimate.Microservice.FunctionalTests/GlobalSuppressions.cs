@@ -6,3 +6,5 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Maintainability", "CA1515:Consider making public types internal", Justification = "For avoid xUnit1027.", Scope = "type", Target = "~T:GtMotive.Estimate.Microservice.FunctionalTests.Infrastructure.CompositionRootCollectionFixture")]
+[assembly: SuppressMessage("Maintainability", "CA1515:Consider making public types internal", Justification = "xUnit test classes must be public, so the fixture they receive must be public too.", Scope = "type", Target = "~T:GtMotive.Estimate.Microservice.FunctionalTests.Infrastructure.CompositionRootTestFixture")]
+[assembly: SuppressMessage("Maintainability", "CA1515:Consider making public types internal", Justification = "xUnit test classes must be public, so their base class must be public too.", Scope = "type", Target = "~T:GtMotive.Estimate.Microservice.FunctionalTests.Infrastructure.FunctionalTestBase")]
