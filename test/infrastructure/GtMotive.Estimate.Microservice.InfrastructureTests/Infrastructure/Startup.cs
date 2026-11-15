@@ -2,6 +2,8 @@
 using Acheve.AspNetCore.TestHost.Security;
 using Acheve.TestHost;
 using GtMotive.Estimate.Microservice.Api;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases;
+using GtMotive.Estimate.Microservice.ApplicationCore.UseCases.CreateVehicle;
 using GtMotive.Estimate.Microservice.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -43,6 +45,11 @@ namespace GtMotive.Estimate.Microservice.InfrastructureTests.Infrastructure
                 .WithApiControllers();
 
             services.AddBaseInfrastructure(true);
+
+            services.AddSingleton<CreateVehicleUseCaseSpy>();
+            services.AddScoped<IUseCase<CreateVehicleInput>>(provider => new CreateVehicleUseCaseSpy.UseCase(
+                provider.GetRequiredService<CreateVehicleUseCaseSpy>(),
+                provider.GetRequiredService<ICreateVehicleOutputPort>()));
         }
     }
 }

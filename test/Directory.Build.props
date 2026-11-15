@@ -23,6 +23,8 @@
   <ItemGroup>
     <!-- Ver Directory.Build.props de la raíz: riesgo aceptado de AutoMapper 14.x. -->
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6vhm-j9h7-f9gh" />
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-gpwp-5797-mjff" />
   </ItemGroup>
 
 </Project>
